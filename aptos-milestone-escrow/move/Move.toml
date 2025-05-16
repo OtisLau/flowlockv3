@@ -1,0 +1,10 @@
+[package]
+name = "MilestoneEscrow"
+version = "0.1.0"
+authors = ["AptosDev"]
+
+[addresses]
+milestone_escrow = "0x0726ea2567b15ba4d1e62a379a677ba2cacab96401dd8b187486fe3a97057b70"
+
+[dependencies]
+AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", subdir = "aptos-move/framework/aptos-framework", rev = "main" } 
