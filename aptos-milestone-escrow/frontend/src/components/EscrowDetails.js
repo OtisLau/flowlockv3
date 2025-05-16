@@ -54,7 +54,6 @@ function EscrowDetails() {
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [contractorAddress, setContractorAddress] = useState('');
 
   // Function to manually refresh data
   const refreshData = () => {
@@ -87,19 +86,28 @@ function EscrowDetails() {
           console.log("Milestone count:", count);
           
           if (count > 0) {
+            console.log("Fetching details for", count, "milestones");
             const milestonePromises = [];
             for (let i = 0; i < count; i++) {
+              console.log("Fetching milestone", i);
               milestonePromises.push(getMilestoneDetails(escrowId, i));
             }
             const milestoneDetails = await Promise.all(milestonePromises);
-            console.log("Milestone details:", milestoneDetails);
+            console.log("Raw milestone details:", milestoneDetails);
             
             // Add index to each milestone and filter out null values
             const validMilestones = milestoneDetails
-              .map((milestone, index) => milestone ? { ...milestone, index } : null)
+              .map((milestone, index) => {
+                console.log("Processing milestone", index, ":", milestone);
+                return milestone ? { ...milestone, index } : null;
+              })
               .filter(Boolean);
-              
+            
+            console.log("Final processed milestones:", validMilestones);
             setMilestones(validMilestones);
+          } else {
+            console.log("No milestones found for escrow");
+            setMilestones([]);
           }
         } else {
           setError("Could not load escrow details. The escrow may not exist.");
@@ -120,24 +128,13 @@ function EscrowDetails() {
   const handleAcceptEscrow = async () => {
     if (!account || !escrow) return;
 
-    if (!contractorAddress) {
-      message.error('Please enter the contractor wallet address');
-      return;
-    }
-
-    // Add console logs for debugging
-    console.log("User wallet address:", account.address);
-    console.log("Contractor address:", contractorAddress);
-    console.log("Escrow ID to accept:", escrowId);
-
     confirm({
       title: 'Accept this project?',
       icon: <ExclamationCircleOutlined />,
       content: (
         <div>
-          <p>You will be assigning this contractor to the project:</p>
-          <p style={{ fontWeight: 'bold', wordBreak: 'break-all' }}>{contractorAddress}</p>
-          <p>The client will be able to release funds to this contractor as milestones are completed.</p>
+          <p>You will be accepting this project as the freelancer.</p>
+          <p>The client will be able to release funds to you as milestones are completed.</p>
         </div>
       ),
       onOk: async () => {
@@ -150,11 +147,10 @@ function EscrowDetails() {
               account,
               signAndSubmitTransaction 
             },
-            escrowId,
-            contractorAddress
+            escrowId
           });
           
-          message.success('You have successfully assigned the contractor to this project!');
+          message.success('You have successfully accepted this project!');
           setTimeout(() => {
             refreshData();
           }, 2000);
@@ -440,18 +436,12 @@ function EscrowDetails() {
         />
       )}
       
-      {!isClient && !isFreelancer && escrow.status === 0 && (
+      {canAccept && (
         <Alert
-          message="Assign Contractor"
+          message="Accept Project"
           description={
             <div>
-              <p>Enter the contractor's wallet address to assign them to this project:</p>
-              <Input
-                placeholder="Enter contractor's wallet address"
-                value={contractorAddress}
-                onChange={(e) => setContractorAddress(e.target.value)}
-                style={{ marginBottom: '10px' }}
-              />
+              <p>You can accept this project as the freelancer.</p>
               <Button 
                 type="primary" 
                 icon={<CheckCircleOutlined />} 
@@ -459,9 +449,8 @@ function EscrowDetails() {
                 loading={processing}
                 size="large"
                 style={{ marginTop: '10px' }}
-                disabled={!contractorAddress}
               >
-                Assign Contractor
+                Accept Project
               </Button>
             </div>
           }

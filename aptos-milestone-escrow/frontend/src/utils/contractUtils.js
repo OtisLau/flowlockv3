@@ -49,15 +49,15 @@ export const createEscrow = async ({
 };
 
 // Accept an escrow as a freelancer
-export const acceptEscrow = async ({ signer, escrowId, contractorAddress }) => {
+export const acceptEscrow = async ({ signer, escrowId }) => {
   try {
-    console.log(`Accepting escrow with ID ${escrowId} for contractor ${contractorAddress}`);
+    console.log(`Accepting escrow with ID ${escrowId}`);
     
     const payload = {
       type: 'entry_function_payload',
       function: `${MODULE_ADDRESS}::${MODULE_NAME}::accept_escrow`,
       type_arguments: [],
-      arguments: [escrowId, contractorAddress],
+      arguments: [escrowId],
     };
 
     console.log("Acceptance payload:", payload);
@@ -276,8 +276,10 @@ export const getMilestoneDetails = async (escrowId, milestoneIndex) => {
       };
       console.log("Processed milestone details:", result);
       return result;
+    } else {
+      console.error("Invalid milestone details format:", details);
+      return null;
     }
-    return null;
   } catch (error) {
     console.error('Error getting milestone details:', error, error.stack);
     return null;
